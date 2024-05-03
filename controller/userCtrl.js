@@ -112,7 +112,7 @@ const updatedUser = asyncHandler(async (req, res) => {
 
 // Get all users
 
-const getallUser = asyncHandler(async (re1, res) => {
+const getallUser = asyncHandler(async (req, res) => {
     try {
         const getUsers = await User.find()
         res.json(getUsers)
