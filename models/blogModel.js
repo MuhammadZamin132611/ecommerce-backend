@@ -38,14 +38,11 @@ var blogSchema = new mongoose.Schema({
             ref: "User"
         },
     ],
-    image: {
-        type: String,
-        default: "https://cdn.websites.hibu.com/97df2096307b4f18a0f85bf1ed3dceb8/dms3rep/multi/blog-c341ba1a.png"
-    },
     author: {
         type: String,
         default: "Admin"
     },
+    images: [],
 },
     {
         toJSON: {
