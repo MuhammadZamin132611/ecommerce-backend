@@ -26,7 +26,6 @@ const createUser = asyncHandler(async (req, res) => {
 const loginUserCtrl = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     // console.log(email, password);
-
     // check if user exists or not
     const findUser = await User.findOne({ email });
     if (findUser && await findUser.isPasswordMatched(password)) {
@@ -49,7 +48,37 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
     } else {
         throw new Error("Invalid Credentials")
     }
-})
+});
+
+// admin login 
+
+const loginAdmin = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    // console.log(email, password);
+    // check if user exists or not
+    const findAdmin = await User.findOne({ email });
+    if (findAdmin.role !== 'admin') throw new Errorn("Not Authorised");
+    if (findAdmin && await findAdmin.isPasswordMatched(password)) {
+        const refreshToken = await generateRefreshToken(findAdmin?._id)
+        const userUpdate = await User.findByIdAndUpdate(findAdmin?.id, {
+            refreshToken: refreshToken
+        }, { new: true });
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            maxAge: 72 * 60 * 60 * 1000
+        })
+        res.json({
+            _id: findAdmin?._id,
+            firstname: findAdmin?.firstname,
+            lstname: findAdmin?.lstname,
+            email: findAdmin?.email,
+            mobile: findAdmin?.mobile,
+            token: generateToken(findAdmin?._id)
+        })
+    } else {
+        throw new Error("Invalid Credentials")
+    }
+});
 
 // handel refresh token
 const handelRefreshToekn = asyncHandler(async (req, res) => {
@@ -238,4 +267,15 @@ const resetPassword = asyncHandler(async (req, res) => {
     res.json(user);
 });
 
-module.exports = { createUser, loginUserCtrl, getallUser, getaUser, deleteaUser, updatedUser, blockUser, unblockUser, handelRefreshToekn, logout, updatePassword, forgotPasswordToken, resetPassword }
+
+const addToWishlist = asyncHandler(async (req, res) => {
+    const { id } = req.user;
+    try {
+      const findUser = await User.findById(id).populate("wishlist");
+      res.json(findUser);
+    } catch (error) {
+      throw new Error(error);
+    }
+  });
+
+module.exports = { createUser, loginUserCtrl, getallUser, getaUser, deleteaUser, updatedUser, blockUser, unblockUser, handelRefreshToekn, logout, updatePassword, forgotPasswordToken, resetPassword, loginAdmin, addToWishlist }

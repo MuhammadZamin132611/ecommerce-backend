@@ -4,6 +4,7 @@ const slugify = require('slugify');
 const User = require('../models/userModel');
 const { validateMongoDbId } = require('../utils/validateMongodbId');
 const cloudinaryUploadImg = require('../utils/cloudinary');
+const fs = require('fs');
 
 
 // Create a product
@@ -204,27 +205,32 @@ const rating = asyncHandler(async (req, res) => {
 
 const uploadImages = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  console.log(req.files);
   validateMongoDbId(id);
   try {
-    const uploader = (path) => cloudinaryUploadImg(path, "images");
-    const urls = [];
-    // Iterate over file names and their corresponding File objects
-    for (const key in req.files) {
-      const file = req.files[key];
-      const { path } = file;
-      const newPath = await uploader(path);
-      urls.push(newPath);
-      
-    }
-    const findProduct = await Product.findByIdAndUpdate(id, {
-      images: urls.map((file) => {
-        return file
-      })
-    }, { new: true });
-    res.json(findProduct)
+      const uploader = (path) => cloudinaryUploadImg(path, "images");
+      const urls = [];
+      const files = req.files;
+      for (const file of files) {
+          const { path } = file;
+          const newpath = await uploader(path);
+          console.log(newpath);
+          urls.push(newpath);
+          // fs.unlinkSync(path);
+      }
+      const findBlog = await Blog.findByIdAndUpdate(
+          id,
+          {
+              images: urls.map((file) => {
+                  return file;
+              }),
+          },
+          {
+              new: true,
+          }
+      );
+      res.json(findBlog);
   } catch (error) {
-    throw new Error(error);
+      throw new Error(error);
   }
 });
 
